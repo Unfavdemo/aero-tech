@@ -54,7 +54,7 @@ export default function Dashboard() {
             className="navigate-button"
             onClick={() => handleNavigate("/weather")}
           >
-            Shows current weather of default location
+            Shows  weather of default location
           </button>
         </div>
       </main>
