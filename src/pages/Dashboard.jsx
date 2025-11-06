@@ -72,6 +72,7 @@ export default function Dashboard() {
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         onSearch={handleSearch}
+        searchAllowed={true}
       />
 
       <main className="main-content">

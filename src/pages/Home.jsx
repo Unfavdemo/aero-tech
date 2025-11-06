@@ -12,7 +12,7 @@ export default function Home() {
 
   return (
     <>
-      <Navbar />
+      <Navbar searchAllowed={false} />
 
       {/* Main Content */}
       <main className="main-content">

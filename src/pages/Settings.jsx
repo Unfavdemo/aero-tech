@@ -125,6 +125,7 @@ export default function Settings() {
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         onSearch={handleSearch}
+        searchAllowed={false}
       />
       
       <main className="settings-main">

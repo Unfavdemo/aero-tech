@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-export default function Navbar({ searchQuery, onSearchQueryChange, onSearch }) {
+export default function Navbar({ searchQuery, onSearchQueryChange, onSearch, searchAllowed = false }) {
   const handleKeyPress = (event) => {
     if (event.key === 'Enter') {
       onSearch();
@@ -15,18 +15,20 @@ export default function Navbar({ searchQuery, onSearchQueryChange, onSearch }) {
             AeroTech
         </Link>
         
-        <section className="search-container">
-          <input
-            type="text"
-            placeholder="Search Location"
-            value={searchQuery}
-            onChange={(e) => onSearchQueryChange(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="search-input"
-          />
-          <button onClick={onSearch} className="search-button">🔍</button>
-        </section>
-
+        {searchAllowed && (
+          <section className="search-container">
+            <input
+              type="text"
+              placeholder="Search Location"
+              value={searchQuery}
+              onChange={(e) => onSearchQueryChange(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="search-input"
+            />
+            <button onClick={onSearch} className="search-button">🔍</button>
+          </section>
+        )}
+        
       </div>
 
       <aside className="nav-right">
