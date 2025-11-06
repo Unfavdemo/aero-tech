@@ -57,9 +57,33 @@ export default function Settings() {
     }
   }, []);
 
+  // Sync selectedLocationData with defaultLocation on mount
+  useEffect(() => {
+    if (selectedLocationData && selectedLocationData.name !== defaultLocation) {
+      setDefaultLocation(selectedLocationData.name);
+      setSearchQuery(selectedLocationData.name);
+    } else if (!selectedLocationData && defaultLocation) {
+      // If we have defaultLocation but no selectedLocationData, try to load it
+      const existingData = localStorage.getItem('defaultLocationData');
+      if (existingData) {
+        try {
+          const parsed = JSON.parse(existingData);
+          if (parsed.name === defaultLocation) {
+            setSelectedLocationData(parsed);
+          }
+        } catch (e) {
+          // Invalid data, ignore
+        }
+      }
+    }
+  }, []); // Only run on mount
+
   // Handle location search
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
 
     try {
       const geoApiUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=5&language=en&format=json`;
@@ -70,8 +94,20 @@ export default function Settings() {
       }
 
       const data = await response.json();
-      if (data.results) {
-        setSearchResults(data.results);
+      
+      // Check if API returned an error
+      if (data.error) {
+        throw new Error(data.reason || 'Geocoding API returned an error');
+      }
+
+      if (data.results && Array.isArray(data.results)) {
+        // Validate results have required fields
+        const validResults = data.results.filter(result => 
+          result.name && 
+          typeof result.latitude === 'number' && 
+          typeof result.longitude === 'number'
+        );
+        setSearchResults(validResults);
       } else {
         setSearchResults([]);
       }
@@ -100,11 +136,12 @@ export default function Settings() {
     localStorage.setItem('allowUnsuitableTasks', allowUnsuitableTasks.toString());
     localStorage.setItem('defaultLocation', defaultLocation);
     
-    // Save the full location data if available
+    // Save the full location data
     if (selectedLocationData) {
+      // Use the selected location data (most reliable)
       localStorage.setItem('defaultLocationData', JSON.stringify(selectedLocationData));
     } else if (defaultLocation && searchResults.length > 0) {
-      // Fallback: try to find the location in search results
+      // Fallback: try to find the location in current search results
       const foundLocation = searchResults.find(r => r.name === defaultLocation);
       if (foundLocation) {
         localStorage.setItem('defaultLocationData', JSON.stringify({
@@ -113,9 +150,29 @@ export default function Settings() {
           longitude: foundLocation.longitude,
         }));
       }
+    } else if (defaultLocation) {
+      // If we have a defaultLocation name but no selectedLocationData,
+      // check if existing data matches the name
+      const existingData = localStorage.getItem('defaultLocationData');
+      if (existingData) {
+        try {
+          const parsed = JSON.parse(existingData);
+          if (parsed.name !== defaultLocation) {
+            // Name changed but no new selection, clear invalid data
+            localStorage.removeItem('defaultLocationData');
+          }
+          // Otherwise keep existing data if name matches
+        } catch (e) {
+          // Invalid data, remove it
+          localStorage.removeItem('defaultLocationData');
+        }
+      }
+    } else {
+      // If default location is cleared, also clear the location data
+      localStorage.removeItem('defaultLocationData');
     }
     
-    // Navigate back or show success message
+    // Navigate back
     navigate(-1);
   };
 

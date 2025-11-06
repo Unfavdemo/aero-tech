@@ -6,12 +6,17 @@ import Navbar from '../components/Navbar';
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [weatherType, setWeatherType] = useState('default');
   const [location, setLocation] = useState(() => {
     // Try to load default location from settings
     const defaultLocationData = localStorage.getItem('defaultLocationData');
     if (defaultLocationData) {
       try {
-        return JSON.parse(defaultLocationData);
+        const parsed = JSON.parse(defaultLocationData);
+        // Ensure we have all required fields
+        if (parsed.name && parsed.latitude && parsed.longitude) {
+          return parsed;
+        }
       } catch (e) {
         console.error('Failed to parse default location data:', e);
       }
@@ -24,21 +29,61 @@ export default function Dashboard() {
     };
   });
 
-  // Load default location on mount
+  // Load default location on mount (in case it was updated in another tab/window)
   useEffect(() => {
     const defaultLocationData = localStorage.getItem('defaultLocationData');
     if (defaultLocationData) {
       try {
         const parsed = JSON.parse(defaultLocationData);
-        setLocation(parsed);
+        // Ensure we have all required fields
+        if (parsed.name && parsed.latitude && parsed.longitude) {
+          setLocation(parsed);
+        }
       } catch (e) {
         console.error('Failed to parse default location data:', e);
       }
     }
   }, []);
 
+  // Apply weather-based background
+  useEffect(() => {
+    // Remove all weather background classes
+    document.body.classList.remove(
+      'weather-clear',
+      'weather-cloudy',
+      'weather-rain',
+      'weather-snow',
+      'weather-thunderstorm',
+      'weather-hot',
+      'weather-cold',
+      'weather-default'
+    );
+    
+    // Add current weather class
+    if (weatherType) {
+      document.body.classList.add(`weather-${weatherType}`);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove(
+        'weather-clear',
+        'weather-cloudy',
+        'weather-rain',
+        'weather-snow',
+        'weather-thunderstorm',
+        'weather-hot',
+        'weather-cold',
+        'weather-default'
+      );
+    };
+  }, [weatherType]);
+
   const handleSearch = useCallback(async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
 
     try {
       // Using Open-Meteo's Geocoding API
@@ -50,11 +95,23 @@ export default function Dashboard() {
       }
 
       const data = await response.json();
-      if (data.results) {
-        setSearchResults(data.results);
-        // Automatically select the first result for the weather cards
-        if (data.results.length > 0) {
-          setLocation(data.results[0]);
+      
+      // Check if API returned an error
+      if (data.error) {
+        throw new Error(data.reason || 'Geocoding API returned an error');
+      }
+
+      if (data.results && Array.isArray(data.results)) {
+        // Validate results have required fields
+        const validResults = data.results.filter(result => 
+          result.name && 
+          typeof result.latitude === 'number' && 
+          typeof result.longitude === 'number'
+        );
+        setSearchResults(validResults);
+        // Automatically select the first valid result for the weather cards
+        if (validResults.length > 0) {
+          setLocation(validResults[0]);
         }
       } else {
         setSearchResults([]);
@@ -62,6 +119,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Failed to fetch location data:", error);
       setSearchResults([]);
+      // You could show an error message to the user here if needed
     }
   }, [searchQuery]);
 
@@ -77,7 +135,7 @@ export default function Dashboard() {
 
       <main className="main-content">
         <SearchResults results={searchResults} onSelectLocation={setLocation} />
-        <WeatherCards location={location} />
+        <WeatherCards location={location} onWeatherChange={setWeatherType} />
       </main>
       
     </>

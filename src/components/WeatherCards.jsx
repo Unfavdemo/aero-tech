@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { getWeatherType, getCurrentWeather } from '../utils/weatherUtils';
 
-export default function WeatherCards({ location }) {
+export default function WeatherCards({ location, onWeatherChange }) {
   // Component State Management
   const [weatherData, setWeatherData] = useState([]);
   const [forecastDate, setForecastDate] = useState('');
@@ -15,12 +16,38 @@ export default function WeatherCards({ location }) {
 
   // Fetch and process weather data on component mount
   useEffect(() => {
-    if (!location) return;
+    if (!location) {
+      setError('No location provided');
+      setLoading(false);
+      return;
+    }
+
+    // Validate location has required fields
+    if (!location.latitude || !location.longitude) {
+      setError('Invalid location: missing latitude or longitude');
+      setLoading(false);
+      return;
+    }
+
+    // Validate latitude and longitude are numbers
+    const lat = Number(location.latitude);
+    const lon = Number(location.longitude);
+    
+    if (isNaN(lat) || isNaN(lon)) {
+      setError('Invalid location: latitude and longitude must be numbers');
+      setLoading(false);
+      return;
+    }
+
+    // Validate latitude and longitude are within valid ranges
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      setError('Invalid location: coordinates out of range');
+      setLoading(false);
+      return;
+    }
 
     const fetchWeatherData = async () => {
-      const { latitude, longitude } = location;
-
-      const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weather_code&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&forecast_days=1`;
+      const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weather_code&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&forecast_days=1`;
 
       try {
         setLoading(true);
@@ -30,6 +57,16 @@ export default function WeatherCards({ location }) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+
+        // Check if API returned an error
+        if (data.error) {
+          throw new Error(data.reason || 'API returned an error');
+        }
+
+        // Validate response has required data
+        if (!data.hourly || !data.hourly.time || !data.hourly.temperature_2m || !data.hourly.weather_code) {
+          throw new Error('Invalid API response: missing required data');
+        }
 
         // Set the forecast date from the first timestamp in the response
         if (data.hourly?.time?.length > 0) {
@@ -94,6 +131,8 @@ export default function WeatherCards({ location }) {
             id: time,
             time: new Date(time).toLocaleTimeString([], { hour: 'numeric', hour12: true }),
             temp: `${Math.round(temp)}°`,
+            tempValue: temp, // Store numeric temp for background calculation
+            weatherCode: weatherCode, // Store weather code for background calculation
             icon: icon,
             condition: condition,
             tasks: storedTasks ? JSON.parse(storedTasks) : [],
@@ -102,6 +141,15 @@ export default function WeatherCards({ location }) {
         });
 
         setWeatherData(transformedData);
+        
+        // Notify parent component about weather change for background
+        if (onWeatherChange && transformedData.length > 0) {
+          const currentWeather = getCurrentWeather(transformedData);
+          if (currentWeather) {
+            const weatherType = getWeatherType(currentWeather.weatherCode, currentWeather.tempValue);
+            onWeatherChange(weatherType);
+          }
+        }
       } catch (e) {
         setError(e.message);
         console.error("Failed to fetch weather data:", e);
