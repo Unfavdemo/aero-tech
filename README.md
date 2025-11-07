@@ -28,9 +28,9 @@ Aero Tech provides hour-by-hour weather forecasts and highlights the perfect tim
 
 ## Technologies Used
 
-*   [React](httpss://reactjs.org/)
-*   [Vite](httpss://vitejs.dev/)
-*   [Open-Meteo API](httpss://open-meteo.com/)
+*   [React](https://reactjs.org/)
+*   [Vite](https://vitejs.dev/)
+*   [Open-Meteo API](https://open-meteo.com/)
 
 # My Implementation
 ## API Usage
