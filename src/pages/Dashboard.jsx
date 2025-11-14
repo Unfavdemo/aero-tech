@@ -3,12 +3,14 @@ import SearchResults from '../components/SearchResults';
 import WeatherCards from '../components/WeatherCards';
 import Navbar from '../components/Navbar';
 
+// Main "planner" view: combines search, forecast cards, and background theming.
 export default function Dashboard() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [weatherType, setWeatherType] = useState('default');
+  const [searchQuery, setSearchQuery] = useState(''); // Mirrors the characters typed into the navbar search input
+  const [searchResults, setSearchResults] = useState([]); // Backing data for the results rail rendered on the left
+  const [weatherType, setWeatherType] = useState('default'); // Drives the background gradient on the page
   const [location, setLocation] = useState(() => {
-    // Try to load default location from settings
+    // When the Dashboard first mounts, try to hydrate the user's preferred location
+    // from Settings. This lets the forecast appear instantly without re-searching.
     const defaultLocationData = localStorage.getItem('defaultLocationData');
     if (defaultLocationData) {
       try {
@@ -21,7 +23,7 @@ export default function Dashboard() {
         console.error('Failed to parse default location data:', e);
       }
     }
-    // Fallback to default location
+    // Fall back to the same default used on the landing page so the UI has sensible data.
     return {
       name: 'Olney, Philadelphia',
       latitude: 40.03,
@@ -31,6 +33,7 @@ export default function Dashboard() {
 
   // Load default location on mount (in case it was updated in another tab/window)
   useEffect(() => {
+    // Sync with changes another tab might make to the saved default location
     const defaultLocationData = localStorage.getItem('defaultLocationData');
     if (defaultLocationData) {
       try {
@@ -79,8 +82,10 @@ export default function Dashboard() {
     };
   }, [weatherType]);
 
+  // Debounced by the caller (Enter key / button) and memoized to avoid re-renders of children.
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
+      // Treat blank input as "clear the list" so stale data does not linger under the field.
       setSearchResults([]);
       return;
     }
@@ -110,6 +115,7 @@ export default function Dashboard() {
         );
         setSearchResults(validResults);
         // Automatically select the first valid result for the weather cards
+        // so the forecast updates immediately while the user skims the options.
         if (validResults.length > 0) {
           setLocation(validResults[0]);
         }
@@ -134,7 +140,9 @@ export default function Dashboard() {
       />
 
       <main className="main-content">
+        {/* Result list lets the user explicitly choose a location; selection updates `location` */}
         <SearchResults results={searchResults} onSelectLocation={setLocation} />
+        {/* WeatherCards fetches + renders the hourly forecast and reports the dominant weather back up */}
         <WeatherCards location={location} onWeatherChange={setWeatherType} />
       </main>
       

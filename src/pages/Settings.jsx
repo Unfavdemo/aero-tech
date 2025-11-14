@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/Settings.css';
 
+// Dedicated settings screen where users control app-wide preferences (theme, task rules, default city).
 export default function Settings() {
   const navigate = useNavigate();
   
-  // Load settings from localStorage or use defaults
+  // --- Persisted toggle state -------------------------------------------------
+  // Initialise the switches from localStorage so the UI reflects the user's last choice.
+  // We wrap each read in a lazy initializer to avoid touching localStorage on every render.
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved === 'true';
@@ -17,12 +20,15 @@ export default function Settings() {
     return saved === 'true';
   });
   
+  // Stores the plain location name so we can show it beside the input.
   const [defaultLocation, setDefaultLocation] = useState(() => {
     const saved = localStorage.getItem('defaultLocation');
     return saved || '';
   });
   
   const [selectedLocationData, setSelectedLocationData] = useState(() => {
+    // Store the full `{ name, latitude, longitude }` object so Dashboard has the coordinates
+    // ready for the forecast API. This prevents extra lookup requests on app launch.
     const saved = localStorage.getItem('defaultLocationData');
     if (saved) {
       try {
@@ -39,8 +45,10 @@ export default function Settings() {
     return saved || '';
   });
   const [searchResults, setSearchResults] = useState([]);
+  // Persist the latest API results so the user can pick a location without re-searching.
 
-  // Apply dark mode to body element
+  // --- Side effects -----------------------------------------------------------
+  // Keep the `<body>` class in sync with the toggle checkbox so the entire app theme updates.
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('dark-mode');
@@ -49,7 +57,7 @@ export default function Settings() {
     }
   }, [darkMode]);
 
-  // Load dark mode on mount
+  // On first mount, re-apply dark mode if the user enabled it elsewhere (e.g., different tab).
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
     if (savedDarkMode === 'true') {
@@ -57,7 +65,7 @@ export default function Settings() {
     }
   }, []);
 
-  // Sync selectedLocationData with defaultLocation on mount
+  // Reconcile the text input with the saved location details if the user arrives from another view.
   useEffect(() => {
     if (selectedLocationData && selectedLocationData.name !== defaultLocation) {
       setDefaultLocation(selectedLocationData.name);
@@ -81,11 +89,13 @@ export default function Settings() {
   // Handle location search
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
+      // Empty searches should clear any previous results
       setSearchResults([]);
       return;
     }
 
     try {
+      // Request a small batch of candidates so the dropdown stays manageable.
       const geoApiUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=5&language=en&format=json`;
       const response = await fetch(geoApiUrl);
 
@@ -119,6 +129,7 @@ export default function Settings() {
 
   // Handle location selection
   const handleSelectLocation = (location) => {
+    // Remember the selected location name in both the input and saved state
     setDefaultLocation(location.name);
     setSearchQuery(location.name);
     setSearchResults([]);
@@ -130,8 +141,9 @@ export default function Settings() {
     });
   };
 
-  // Handle save
+  // Persist whatever combination of toggles + location the user currently has selected.
   const handleSave = () => {
+    // Persist the toggle states as strings because localStorage stores text
     localStorage.setItem('darkMode', darkMode.toString());
     localStorage.setItem('allowUnsuitableTasks', allowUnsuitableTasks.toString());
     localStorage.setItem('defaultLocation', defaultLocation);
@@ -141,7 +153,7 @@ export default function Settings() {
       // Use the selected location data (most reliable)
       localStorage.setItem('defaultLocationData', JSON.stringify(selectedLocationData));
     } else if (defaultLocation && searchResults.length > 0) {
-      // Fallback: try to find the location in current search results
+      // Fallback: try to find the location in current search results so we can store fresh coordinates
       const foundLocation = searchResults.find(r => r.name === defaultLocation);
       if (foundLocation) {
         localStorage.setItem('defaultLocationData', JSON.stringify({
@@ -151,6 +163,8 @@ export default function Settings() {
         }));
       }
     } else if (defaultLocation) {
+      // If all we have is a name, we treat the previously stored coordinates as stale unless they match.
+      // This prevents the Dashboard from pointing at the wrong city after the user manually edits the text field.
       // If we have a defaultLocation name but no selectedLocationData,
       // check if existing data matches the name
       const existingData = localStorage.getItem('defaultLocationData');
@@ -173,11 +187,12 @@ export default function Settings() {
     }
     
     // Navigate back
-    navigate(-1);
+    navigate(-1); // Send the user back to the previous page after saving
   };
 
   return (
     <>
+      {/* Reuse the global Navbar but disable its built-in search */}
       <Navbar 
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}

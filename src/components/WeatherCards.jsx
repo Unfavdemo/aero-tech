@@ -6,24 +6,29 @@ import {
   detectWeatherAnomalies
 } from '../utils/weatherUtils';
 
-export default function WeatherCards({ location, onWeatherChange }) {
-  // Component State Management
+// Renders the hour-by-hour forecast cards, handles task persistence, and bubbles insight summaries.
+export default function WeatherCards({
+  location, // `{ name, latitude, longitude }` object used to drive the forecast query
+  onWeatherChange, // Callback used to update the parent's background based on current conditions
+}) {
+  // Raw hourly forecast after normalization; this is the source of truth for the cards.
   const [weatherData, setWeatherData] = useState([]);
-  const [forecastDate, setForecastDate] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [forecastDate, setForecastDate] = useState(''); // Friendly string such as "Tuesday, March 12"
+  const [loading, setLoading] = useState(true); // Governs the animated skeleton/spinner state
+  const [error, setError] = useState(null); // Captures any fetch or validation errors so we can short-circuit rendering
 
   const [filters, setFilters] = useState({
     good: true,
     bad: true,
     unsuitable: false,
-  });
+  }); // Mirrors the three toggle checkboxes so we can quickly filter the cards
 
-  const [taskRecommendations, setTaskRecommendations] = useState([]);
-  const [weatherAnomalies, setWeatherAnomalies] = useState([]);
+  const [taskRecommendations, setTaskRecommendations] = useState([]); // Curated "pro tip" slots derived from the forecast
+  const [weatherAnomalies, setWeatherAnomalies] = useState([]); // Alerts for drastic swings or extreme conditions
 
   // Fetch and process weather data on component mount
   useEffect(() => {
+    // Bail out early if we don't have a usable location payload
     if (!location) {
       setError('No location provided');
       setLoading(false);
@@ -55,6 +60,7 @@ export default function WeatherCards({ location, onWeatherChange }) {
     }
 
     const fetchWeatherData = async () => {
+      // Build the Open-Meteo URL each time the location changes
       const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weather_code&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&forecast_days=1`;
 
       try {
@@ -227,6 +233,7 @@ export default function WeatherCards({ location, onWeatherChange }) {
   const filteredWeatherData = weatherData.filter((weather) => filters[weather.cardClass]);
 
   const marqueeMessages = [...weatherAnomalies, ...taskRecommendations];
+  // Doubling the array lets the marquee animation loop seamlessly without abrupt jumps.
   const marqueeLoop = marqueeMessages.length > 0 ? [...marqueeMessages, ...marqueeMessages] : [];
 
   // Render error message if data fetching fails
@@ -296,6 +303,7 @@ export default function WeatherCards({ location, onWeatherChange }) {
 
             <section className="weather-tasks">
               <h3 className="tasks-label">Tasks ({weather.tasks.length})</h3>
+              {/* Wrap the logic in an IIFE so we can branch without cluttering JSX with ternaries */}
               {(() => {
                 const allowUnsuitableTasks = localStorage.getItem('allowUnsuitableTasks') === 'true';
                 const isUnsuitable = weather.cardClass === 'unsuitable';

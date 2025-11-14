@@ -1,5 +1,7 @@
 // Utility function to determine weather type for background
 export function getWeatherType(weatherCode, temperature) {
+  // Translate a WMO weather code + temp into one of our themed backgrounds.
+  // The order matters: we check the highest-severity indicators first so they "win".
   // Thunderstorm
   if (weatherCode >= 95) {
     return 'thunderstorm';
@@ -47,6 +49,7 @@ export function getCurrentWeather(weatherData) {
   weatherData.forEach(weather => {
     try {
       const weatherDate = new Date(weather.id);
+      // Hour granularity is sufficient because the API returns hourly buckets.
       const diff = Math.abs(weatherDate.getHours() - currentHour);
       if (diff < minDiff) {
         minDiff = diff;
@@ -69,12 +72,14 @@ export function generateTaskRecommendations(weatherData) {
   const scoredWindows = weatherData.map((entry) => {
     let score = 0;
 
+    // Start with a baseline derived from how the card was classified.
     if (entry.cardClass === 'good') score += 3;
     if (entry.cardClass === 'bad') score += 1;
     if (entry.cardClass === 'unsuitable') score -= 3;
 
     const temp = Number(entry.tempValue);
     if (!Number.isNaN(temp)) {
+      // Mild temperatures are more desirable; extremes are penalized.
       if (temp >= 55 && temp <= 82) score += 2;
       if (temp >= 45 && temp < 55) score += 1;
       if (temp > 90 || temp < 35) score -= 2;
@@ -96,6 +101,7 @@ export function generateTaskRecommendations(weatherData) {
     };
   });
 
+  // Surface only the top-scoring windows so the marquee stays concise.
   const topWindows = scoredWindows
     .filter((entry) => entry.recommendationScore > 1)
     .sort((a, b) => b.recommendationScore - a.recommendationScore)
@@ -120,6 +126,7 @@ export function detectWeatherAnomalies(weatherData) {
     const prev = weatherData[index - 1];
 
     if (entry.cardClass === 'unsuitable') {
+      // Bubble up explicit unsuitable segments so the marquee can call them out.
       anomalies.push({
         type: 'anomaly',
         message: `${entry.time} alert • ${entry.condition} ${entry.icon}`
@@ -129,6 +136,7 @@ export function detectWeatherAnomalies(weatherData) {
     if (!Number.isNaN(temp) && prev && !Number.isNaN(Number(prev.tempValue))) {
       const delta = Math.abs(temp - Number(prev.tempValue));
       if (delta >= 15) {
+        // Large swings in temperature within an hour can be jarring; flag them.
         anomalies.push({
           type: 'anomaly',
           message: `${entry.time} swing • ~${Math.round(delta)}° jump`
@@ -165,6 +173,7 @@ export function detectWeatherAnomalies(weatherData) {
     }
   });
 
+  // Cap the list so we don't overwhelm the user with repeated alerts.
   return Array.from(uniqueMessages.values()).slice(0, 6);
 }
 

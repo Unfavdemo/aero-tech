@@ -23,6 +23,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Themed gradients and layered decorations applied per weather state */
 body[class*="weather-"] {
   --sky-top: #98d7ff;
   --sky-mid: #c8eaff;
@@ -44,6 +45,7 @@ body[class*="weather-"] {
   --sun-position: 15% 18%;
   --hill-layer: repeating-linear-gradient(120deg, var(--hill-light) 0 95px, var(--hill-dark) 95px 190px);
 
+  /* Each layer below stacks to create a parallax-like backdrop (stars → clouds → sun → hills). */
   background-image: 
     var(--twinkle-layer),
     var(--floaty-layer),

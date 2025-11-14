@@ -1,3 +1,4 @@
+/* Layout wrapper around the settings panel content */
 .settings-main {
   padding: 20px;
   display: flex;
@@ -6,6 +7,7 @@
   min-height: calc(100vh - 80px);
 }
 
+/* Frosted glass style panel that holds all controls */
 .settings-panel {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 246, 254, 0.92) 100%);
   border: 3px solid rgba(255, 190, 230, 0.35);
@@ -17,6 +19,7 @@
   backdrop-filter: blur(14px);
 }
 
+/* Bold heading at the top of the panel */
 .settings-title {
   font-size: 26px;
   font-weight: 700;
@@ -25,6 +28,7 @@
   text-shadow: 0 4px 10px rgba(255, 180, 230, 0.4);
 }
 
+/* Shared styling for each toggle/input row */
 .setting-item {
   margin-bottom: 26px;
   padding: 18px 20px;
@@ -42,16 +46,19 @@
   color: #2f2154;
 }
 
+/* Inline layout for the switch, label, and ON/OFF text */
 .toggle-container {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
+/* Hide the native checkbox; we replace it with the styled switch */
 .toggle-checkbox {
   display: none;
 }
 
+/* Visual switch track that pairs with the hidden checkbox */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -60,6 +67,7 @@
   cursor: pointer;
 }
 
+/* Background gradient for the switch track */
 .toggle-slider {
   position: absolute;
   top: 0;
@@ -71,6 +79,7 @@
   transition: 0.3s ease;
 }
 
+/* Circular knob inside the switch track */
 .toggle-slider:before {
   position: absolute;
   content: "";
@@ -84,10 +93,12 @@
   box-shadow: 0 3px 8px rgba(255, 150, 210, 0.4);
 }
 
+/* Swap the track color when the checkbox is checked */
 .toggle-checkbox:checked + .toggle-switch .toggle-slider {
   background: linear-gradient(135deg, #8be0ff 0%, #7cf0c2 100%);
 }
 
+/* Slide the knob to the opposite end when toggled */
 .toggle-checkbox:checked + .toggle-switch .toggle-slider:before {
   transform: translateX(24px);
 }
@@ -98,10 +109,12 @@
   color: #3a2a63;
 }
 
+/* Wrap the search box and popover so results can be absolutely positioned */
 .location-input-container {
   position: relative;
 }
 
+/* Primary text field users type the geocoding query into */
 .location-input {
   width: 100%;
   padding: 12px 16px;
@@ -119,6 +132,7 @@
   box-shadow: 0 0 0 4px rgba(120, 160, 255, 0.2);
 }
 
+/* Dropdown container for geocoding suggestions */
 .location-results {
   position: absolute;
   top: 100%;
@@ -171,6 +185,7 @@
   color: #45566a;
 }
 
+/* Tag that reiterates which location is currently selected */
 .selected-location {
   margin-top: 10px;
   padding: 12px 16px;
@@ -182,6 +197,7 @@
   color: #25718c;
 }
 
+/* Primary action button for persisting all setting changes */
 .save-button {
   width: 100%;
   padding: 14px 28px;
@@ -206,11 +222,12 @@
   transform: translateY(-1px);
 }
 
-/* Dark Mode Styles */
+/* Dark Mode Styles ------------------------------------------------------- */
 .dark-mode .settings-main {
-  background: transparent;
+  background: transparent; /* Keep the glass effect; the page backdrop handles the theme */
 }
 
+/* Dark mode overrides mirror the light theme but adjust tones */
 .dark-mode .settings-panel {
   background: linear-gradient(180deg, rgba(46, 52, 88, 0.78) 0%, rgba(28, 34, 60, 0.78) 100%);
   border-color: rgba(140, 170, 255, 0.45);

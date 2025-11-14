@@ -8,8 +8,12 @@ Many weather apps show current conditions, but do not help users plan for short 
 An hour-by-hour weather calendar that shows ideal conditions and time slots for outdoor tasks.
 
 # My Implementation
+* Created settings page
+* Added news header to dashboard
+* Completed CSS
 ## API Usage
 Using the weather API, Open-Meteo.
 * Free to use
 * Providers hour-by-hour weather forecasts
 * Allows many different locations
+

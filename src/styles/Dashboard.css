@@ -1,3 +1,4 @@
+/* Primary flex column for the dashboard view; stacks the navbar above the content area while inheriting the themed background */
 .dashboard-container {
   font-family: 'Fredoka', cursive, sans-serif;
   background-color: transparent;
@@ -7,7 +8,8 @@
   flex-direction: column;
 }
 
-/* Top Navigation */
+/* Top Navigation --------------------------------------------------------- */
+/* Legacy header styling; still used by some nested components */
 .top-nav {
   display: flex;
   align-items: center;
@@ -19,11 +21,13 @@
   border-radius: 0 0 30px 30px;
 }
 
+/* Container for back/forward arrows */
 .nav-buttons {
   display: flex;
   gap: 8px;
 }
 
+/* Cartoonish arrow buttons that flank the legacy search bar */
 .nav-arrow {
   background: white;
   border: 3px solid #b2d3f2;
@@ -43,6 +47,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* Legacy search input (current implementation lives in Navbar.css) */
 .search-bar {
   flex: 1;
   margin: 0 25px;
@@ -62,6 +67,7 @@
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(178, 211, 242, 0.3);
 }
 
+/* Link-styled button used inside the nav row */
 .dashboard-link {
   font-weight: 700;
   cursor: pointer;
@@ -75,6 +81,7 @@
   transform: scale(1.1);
 }
 
+/* Animated cog used in the legacy header */
 .settings-icon {
   cursor: pointer;
   font-size: 24px;
@@ -92,7 +99,7 @@
   transform: rotate(180deg) scale(1.2);
 }
 
-/* Main Content */
+/* Main Content ----------------------------------------------------------- */
 .main-content {
   flex: 1;
   display: flex;
@@ -104,6 +111,7 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Circular frame for the app logo on the landing page */
 .logo-circle {
   width: 280px;
   height: 280px;
@@ -153,7 +161,7 @@
   line-height: 1.6;
 }
 
-/* Weather Preview - Cartoonish Style */
+/* Weather Preview - Cartoonish Style ------------------------------------ */
 .weather-preview {
   background: rgba(255, 255, 255, 0.95);
   border: 4px solid rgba(0, 0, 0, 0.15);
@@ -206,6 +214,7 @@
   color: #666;
 }
 
+/* Skeleton variant displayed while current conditions are being requested */
 .weather-preview-loading {
   background: rgba(255, 255, 255, 0.9);
   border: 4px solid rgba(0, 0, 0, 0.1);
@@ -220,6 +229,7 @@
   gap: 10px;
 }
 
+/* Rotating emoji adds a playful loading state */
 .loading-emoji {
   font-size: 60px;
   animation: loading-spin 2s linear infinite;
@@ -244,6 +254,7 @@
   50% { opacity: 0.5; }
 }
 
+/* CTA button that routes to the dashboard when rendered on the hero */
 .navigate-button {
   background-color: #b6d9f5;
   border: 4px solid #a0c8ea;
@@ -265,7 +276,7 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.6);
 }
 
-/* Responsive adjustments for medium and small screens */
+/* Responsive adjustments for medium and small screens ------------------- */
 @media (max-width: 1024px) {
   .logo-circle {
     width: 240px;
@@ -327,7 +338,7 @@
   }
 }
 
-/* Dark Mode Styles */
+/* Dark Mode Styles ------------------------------------------------------- */
 .dark-mode .dashboard-container {
   background-color: transparent;
   color: #fff;
