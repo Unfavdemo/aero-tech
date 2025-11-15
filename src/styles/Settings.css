@@ -293,3 +293,33 @@
 .dark-mode .save-button:hover {
   box-shadow: 0 24px 52px rgba(140, 170, 255, 0.55);
 }
+
+/* Back Button */
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e6f0ff;
+  border: none;
+  color: #0077cc;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  margin-bottom: 20px;
+}
+
+.back-button:hover {
+  background-color: #cce0ff;
+  transform: translateX(-2px);
+}
+
+.back-arrow {
+  font-size: 1.2rem;
+  margin-right: 8px;
+  transition: transform 0.2s ease;
+}
+
+.back-button:hover .back-arrow {
+  transform: translateX(-3px);
+}

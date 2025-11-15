@@ -202,6 +202,11 @@ export default function Settings() {
       
       <main className="settings-main">
         <div className="settings-panel">
+    
+          <button className="back-button" onClick={() => navigate(-1)}>
+            <span className="back-arrow">←</span> Back
+          </button>
+
           <h2 className="settings-title">Settings</h2>
           
           {/* Dark Mode Toggle */}
@@ -251,9 +256,8 @@ export default function Settings() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch();
-                  }
+                  if (e.key === 'Enter') handleSearch();
+                  
                 }}
               />
               {searchResults.length > 0 && (
